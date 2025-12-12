@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100 font-sans text-gray-900">
     
-    <header class="bg-white shadow-sm mb-8">
+    <header class="bg-gray-700 text-white shadow-sm mb-8">
       <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <h1 class="text-xl font-bold text-green-600">📝 My Super Do</h1>
         <nav class="space-x-4">
@@ -17,7 +17,7 @@
       </div>
       
       <footer class="text-center text-gray-400 text-sm mt-8 pb-4">
-        &copy; 2025 สร้างด้วยความรักและ Nuxt.js
+        &copy; 2025 - Panawat
       </footer>
     </main>
   </div>

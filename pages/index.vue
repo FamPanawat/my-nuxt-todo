@@ -66,7 +66,7 @@ useHead({
       <input v-model="task" @keyup.enter="addTask" placeholder="วันนี้จะทำอะไรดี..."
         class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
       <button @click="addTask"
-        class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition shadow-md">
+        class="bg-orange-400 hover:bg-orange-500 text-white px-6 py-2 rounded-lg font-medium transition shadow-md">
         เพิ่ม
       </button>
     </div>
