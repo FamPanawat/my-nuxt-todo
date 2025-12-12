@@ -13,7 +13,7 @@ const login = async () => {
   const { error } = await client.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: 'http://localhost:3000/confirm' // เดี๋ยวมันจะเด้งกลับมาหน้านี้
+      redirectTo: 'https://my-nuxt-todo-dhza.vercel.app/confirm' // เดี๋ยวมันจะเด้งกลับมาหน้านี้
     }
   })
   if (error) console.log(error)
