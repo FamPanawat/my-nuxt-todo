@@ -1,4 +1,6 @@
 <script setup>
+import Swal from 'sweetalert2'
+
 const client = useSupabaseClient()
 const user = useSupabaseUser()
 
@@ -69,8 +71,34 @@ const pendingTasks = computed(() => {
 
 // ฟังก์ชันลบงาน
 async function removeTask(index, id) {
-  await client.from('tasks').delete().eq('id', id)
-  fetchTasks()
+  // เรียกใช้ Swal (มันจะรอจนกว่าคนจะกดปุ่ม เพราะเราใส่ await)
+  const result = await Swal.fire({
+    title: 'คุณแน่ใจไหม?',
+    text: "ถ้าลบแล้วจะกู้คืนไม่ได้นะ!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444', // สีแดง (Tailwind red-500)
+    cancelButtonColor: '#3b82f6', // สีฟ้า
+    confirmButtonText: 'ใช่ ลบเลย!',
+    cancelButtonText: 'ยกเลิก'
+  })
+
+  if (result.isConfirmed) {
+    const { error } = await client.from('tasks').delete().eq('id', id)
+
+    if (!error) {
+      fetchTasks() // รีเฟรชหน้าจอ
+
+      // (Optional) เด้งบอกว่าลบสำเร็จแล้ว
+      Swal.fire({
+        title: 'ลบเรียบร้อย!',
+        text: 'งานของคุณถูกลบออกจากระบบแล้ว',
+        icon: 'success',
+        timer: 1500, // ปิดเองใน 1.5 วิ
+        showConfirmButton: false
+      })
+    }
+  }
 }
 
 // ฟังก์ชันอัปเดตสถานะ
