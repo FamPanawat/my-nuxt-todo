@@ -1,61 +1,94 @@
 <script setup>
-const taskLists = ref([])
+const client = useSupabaseClient()
+const user = useSupabaseUser()
+
 const task = ref('')
+const taskLists = ref([])
 
-const { data: serverTasks } = await useFetch('/api/tasks')
+const userId = user.value?.id || user.value?.sub
 
-onMounted(() => {
-  const savedTasks = localStorage.getItem("taskLists")
-  if (savedTasks) {
-    taskLists.value = JSON.parse(savedTasks)
-  } else if (serverTasks.value) {
-    taskLists.value = [...serverTasks.value]
+async function fetchTasks() {
+  if (!userId) {
+    taskLists.value = []
+    return
   }
-})
 
+  const { data, error } = await client
+    .from('tasks')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
 
+  if (data) {
+    taskLists.value = data
+  }
+}
 
-function addTask() {
+watch(user, () => {
+  if (userId) {
+    fetchTasks()
+  } else {
+    taskLists.value = []
+  }
+}, { immediate: true })
+
+// ฟังก์ชันเพิ่มงาน
+async function addTask() {
   if (task.value.trim() === '') return
 
-  taskLists.value.push({
-    id: Date.now(),
-    text: task.value,
-    isDone: false
-  })
+  if (!userId) {
+    console.log('User ID หาไม่เจอเลย (ทั้ง id และ sub)')
+    return
+  }
 
-  task.value = '';
+  const newTask = {
+    text: task.value,
+    is_done: false,
+    user_id: userId
+  }
+
+  const { error } = await client
+    .from('tasks')
+    .insert(newTask)
+
+  if (error) {
+    console.error('Save Error:', error)
+    alert('บันทึกไม่ได้: ' + error.message) // เด้งเตือนที่หน้าจอ
+    return
+  }
+
+  // ถ้าผ่าน
+  task.value = ''
+  fetchTasks()
 }
 
+// Computed
 const pendingTasks = computed(() => {
-  return taskLists.value.filter(item => !item.isDone).length
+  return taskLists.value.filter(item => !item.is_done).length
 })
 
-watch(taskLists, (newValue) => {
-  if (process.client) {
-    localStorage.setItem("taskLists", JSON.stringify(newValue))
-  }
-}, { deep: true })
-
-
-function removeTask(index) {
-  // console.log(index)
-  taskLists.value.splice(index, 1)
+// ฟังก์ชันลบงาน
+async function removeTask(index, id) {
+  await client.from('tasks').delete().eq('id', id)
+  fetchTasks()
 }
 
-// ใช้ computed สร้างข้อความ Title แบบอัตโนมัติ
+// ฟังก์ชันอัปเดตสถานะ
+async function updateTask(task) {
+  await client
+    .from('tasks')
+    .update({ is_done: task.is_done })
+    .eq('id', task.id)
+}
+
+// SEO
 const pageTitle = computed(() => {
   return `เหลือ ${pendingTasks.value} งาน - My Super Do`
 })
-
-// ยัดใส่ useHead
 useHead({
-  title: pageTitle, // พอตัวแปรเปลี่ยน Title ก็เปลี่ยนตาม!
-  meta: [
-    { name: 'description', content: 'จดบันทึกงานของคุณได้ที่นี่ ง่ายและฟรี' }
-  ]
+  title: pageTitle,
+  meta: [{ name: 'description', content: 'จดบันทึกงานของคุณได้ที่นี่' }]
 })
-
 </script>
 
 <template>
@@ -77,7 +110,8 @@ useHead({
     </div>
 
     <ul class="space-y-2">
-      <TaskItem v-for="(item, index) in taskLists" :key="item.id" :task="item" @delete-me="removeTask(index)" />
+      <TaskItem v-for="(item, index) in taskLists" :key="item.id" :task="item" @delete-me="removeTask(index, item.id)"
+        @change="updateTask(item)" />
     </ul>
   </div>
 </template>

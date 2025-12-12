@@ -1,6 +1,7 @@
 <script setup>
 defineProps({ task: Object })
-const emit = defineEmits(['delete-me'])
+// ประกาศว่า component นี้ส่งสัญญาณอะไรได้บ้าง
+const emit = defineEmits(['delete-me', 'change'])
 </script>
 
 <template>
@@ -10,14 +11,14 @@ const emit = defineEmits(['delete-me'])
       <input 
         type="checkbox" 
         :id="'chk-' + task.id" 
-        v-model="task.isDone"
+        v-model="task.is_done"
+        @change="$emit('change')" 
         class="w-5 h-5 text-green-500 rounded focus:ring-green-500 cursor-pointer"
       >
-      
       <label 
         :for="'chk-' + task.id" 
         class="cursor-pointer select-none text-lg transition-colors"
-        :class="{ 'text-gray-400 line-through decoration-gray-400': task.isDone, 'text-gray-700': !task.isDone }"
+        :class="{ 'text-gray-400 line-through decoration-gray-400': task.is_done, 'text-gray-700': !task.is_done }"
       >
         {{ task.text }}
       </label>
